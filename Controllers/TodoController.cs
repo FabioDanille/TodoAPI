@@ -55,9 +55,36 @@ namespace TodoAPI.Controllers
             {
                 return BadRequest();
             }
-
-
         }
+        // PUT
+        [HttpPut, Route("todos/{id}")]
+        public async Task<IActionResult> PutAsync(
+            [FromServices] AppDbContext context,
+            [FromRoute] int id,
+            [FromBody] CreateTodoViewModel model
+        )
+        {
+            if(!ModelState.IsValid) return BadRequest();
+
+            var todo = await context.Todos.FirstOrDefaultAsync(x => x.Id == id);
+
+            if(todo == null) return NotFound();
+
+            try
+            {
+                todo.Title = model.Title;
+                todo.Done = model.Done;
+                todo.DateUpdate = DateTime.Now.ToLocalTime();
+
+                context.Todos.Update(todo);
+                await context.SaveChangesAsync();
+                return Ok(todo);
+            }catch(Exception e)
+            {
+                return BadRequest();
+            }
+        }
+        
 
     }
 }	
