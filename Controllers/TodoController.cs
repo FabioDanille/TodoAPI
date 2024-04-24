@@ -51,7 +51,8 @@ namespace TodoAPI.Controllers
                 await context.Todos.AddAsync(todo);
                 await context.SaveChangesAsync();
                 return Created($"v1/todos/{todo.Id}", todo);
-            }catch(Exception e)
+            }
+            catch(Exception e)
             {
                 return BadRequest();
             }
@@ -79,12 +80,54 @@ namespace TodoAPI.Controllers
                 context.Todos.Update(todo);
                 await context.SaveChangesAsync();
                 return Ok(todo);
-            }catch(Exception e)
+            }
+            catch(Exception e)
             {
                 return BadRequest();
             }
         }
-        
+
+        // DELETE
+        [HttpDelete, Route("todos/{id}")]
+        public async Task<IActionResult> DeleteAsync(
+            [FromRoute] int id,
+            [FromServices] AppDbContext context)
+        {
+            var todo = await context.Todos.FirstOrDefaultAsync(x => x.Id == id);
+
+            if(todo == null) return NotFound();
+
+            try
+            {
+                context.Todos.Remove(todo);
+                await context.SaveChangesAsync();
+                return Ok(todo);
+            }
+            catch(Exception e)
+            {
+                return BadRequest();
+            }
+        }
+
+        // DELETE ALL
+        [HttpDelete, Route("todos")]
+        public async Task<IActionResult> DeleteAllAsync(
+            [FromServices] AppDbContext context,
+            [FromBody] string password
+        )
+        {
+            if (password == "Delete Everything"){
+                var todo = await context.Todos.AsNoTracking().ToListAsync();
+                context.Todos.RemoveRange(todo);
+                await context.SaveChangesAsync();
+                return Ok(todo);
+            }
+            else
+            {
+                return BadRequest();
+            }
+                
+        }
 
     }
 }	
